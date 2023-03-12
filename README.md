@@ -127,7 +127,98 @@ Esta tabela apresenta uma lista de sensores que podem ser utilizados em conjunto
 
 
 
-Etapa 3: Montar e configurar o hardware
+## Etapa 3: Montar e configurar o hardware
+
+Nesta etapa do projeto, será necessário montar e configurar o hardware necessário para o funcionamento do sistema de irrigação inteligente. Para este projeto, utilizaremos um NodeMCU com ESP32 como microcontrolador, e uma série de sensores para coletar dados do ambiente e das plantas.
+
+### Lista de Materiais:
+
+1. NodeMCU com ESP32
+2. Sensor de umidade do solo
+3. Sensor de temperatura e umidade DHT11
+4. Sensor de luminosidade LDR
+5. Bomba de água
+6. Módulo relé
+7. Fonte de alimentação AC-DC
+8. Protoboard
+9. Cabos e conectores
+
+### Montagem do Circuito
+Para a montagem do circuito, é necessário seguir o esquema elétrico abaixo. Utilize o protoboard para acomodar os componentes e faça a soldagem com cuidado, para evitar danos aos componentes.
+
+Esquema Elétrico:
+
+Esquema Elétrico
+
+### Configuração do Microcontrolador
+
+![TLB1Ji904BttAoQSzC2XFs084A89c2YW5nCoi4FTkDt1tQqAXeFVui5uzXFwOtQdXpODNBQTD--zpflkm0TqeSXDaknmyu8PGM-kVQ0SGH7SEASpB7_AR-x1PmAmPQF8GU-M5Sr6one4SBG9Q3CJrMGzkoXUvbfXzLGCSpQL0NeeQcobUEKhxBnuGVcE78R2uPE5nknYVBr8qqinKyyXJ](https://user-images.githubusercontent.com/38250160/224572737-79b7c96a-c244-46fc-9e46-b3fea5953c98.png)
+
+Para configurar o microcontrolador, utilize a linguagem de programação Arduino. Baixe a biblioteca para cada sensor e instale no IDE do Arduino. Em seguida, utilize o código .ino abaixo e faça as alterações necessárias para adaptar ao seu projeto.
+
+
+```c++
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+
+#define SSID "your_wifi_ssid"
+#define PASSWORD "your_wifi_password"
+#define BROKER_IP "mqtt_broker_ip"
+#define BROKER_PORT 1883
+#define TOPIC "your_topic"
+
+#define DHTPIN 2          // Pin de comunicação com o sensor DHT11
+#define DHTTYPE DHT11     // Modelo do sensor DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+
+WiFiClient wifiClient;
+PubSubClient client(wifiClient);
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  // Conecta à rede Wi-Fi
+  Serial.print("Conectando na rede Wi-Fi");
+  WiFi.begin(SSID, PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("Conectado!");
+
+  // Conecta ao broker MQTT
+  Serial.print("Conectando ao broker MQTT");
+  client.setServer(BROKER_IP, BROKER_PORT);
+  while (!client.connected()) {
+    if (client.connect("ESP32Client")) {
+      Serial.println("Conectado!");
+    } else {
+      Serial.print("Falha ao conectar ao broker. Código de erro: ");
+      Serial.println(client.state());
+      delay(2000);
+    }
+  }
+}
+
+void loop() {
+  float umidadeSolo = analogRead(A0);
+  float umidadeSoloPorcentagem = map(umidadeSolo, 4095, 0, 0, 100);
+  
+  float temperatura = dht.readTemperature();
+  float umidadeAr = dht.readHumidity();
+
+  int luminosidade = analogRead(A1);
+  
+  // Envia os dados para o broker MQTT
+  char message[100];
+  sprintf(message, "{\"umidade_solo\":%.2f,\"temperatura\":%.2f,\"umidade_ar\":%.2f,\"luminosidade\":%d}", umidadeSoloPorcent
+
+
+```
 
 
 Etapa 4: Programar o microcontrolador ESP32
